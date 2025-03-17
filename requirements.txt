@@ -1,0 +1,25 @@
+# Blockchain and cryptocurrency libraries
+web3==6.0.0
+python-binance==1.0.16
+
+# Data analysis and technical indicators
+pandas==2.0.0
+numpy==1.24.0
+ta==0.10.2
+
+# Sentiment analysis
+tweepy==4.12.1
+textblob==0.17.1
+nltk==3.8.1
+
+# Web interface
+flask==2.3.3
+flask-wtf==1.1.1
+flask-socketio==5.3.4
+plotly==5.16.1
+dash==2.13.0
+
+# Utilities
+python-dotenv==1.0.0
+schedule==1.1.0
+loguru==0.6.0

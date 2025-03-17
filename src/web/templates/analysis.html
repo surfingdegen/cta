@@ -1,0 +1,650 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis - Crypto Trading Agent{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Analysis</h1>
+    </div>
+</div>
+
+<!-- Token Selector -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <label for="token-select" class="form-label">Select Token</label>
+                        <select id="token-select" class="form-select">
+                            <option value="">Select a token to analyze</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="timeframe-select" class="form-label">Timeframe</label>
+                        <select id="timeframe-select" class="form-select">
+                            <option value="1h">1 Hour</option>
+                            <option value="4h">4 Hours</option>
+                            <option value="1d" selected>1 Day</option>
+                            <option value="1w">1 Week</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button id="analyze-btn" class="btn btn-primary">
+                            <i class="fas fa-chart-line me-1"></i>Analyze
+                        </button>
+                        <button id="refresh-btn" class="btn btn-secondary ms-2">
+                            <i class="fas fa-sync-alt me-1"></i>Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Analysis Summary -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Technical Signal</h5>
+                <div class="d-flex align-items-center">
+                    <span id="technical-signal-badge" class="badge bg-secondary me-2">Neutral</span>
+                    <h3 id="technical-signal-strength">0</h3>
+                </div>
+                <p class="text-muted">Based on technical indicators</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Sentiment Signal</h5>
+                <div class="d-flex align-items-center">
+                    <span id="sentiment-signal-badge" class="badge bg-secondary me-2">Neutral</span>
+                    <h3 id="sentiment-score">0.00</h3>
+                </div>
+                <p class="text-muted">Based on X.com sentiment</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Combined Signal</h5>
+                <div class="d-flex align-items-center">
+                    <span id="combined-signal-badge" class="badge bg-secondary me-2">Neutral</span>
+                    <h3 id="combined-signal-strength">0</h3>
+                </div>
+                <p class="text-muted">Overall trading signal</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Price Chart -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Price Chart</h5>
+            </div>
+            <div class="card-body">
+                <div id="price-chart" style="height: 500px;">
+                    <div class="d-flex justify-content-center align-items-center h-100">
+                        <p class="text-muted">Select a token to view price chart</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Technical Indicators -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Technical Indicators</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">RSI (14)</h6>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                        <div id="rsi-progress" class="progress-bar" role="progressbar" style="width: 50%"></div>
+                                    </div>
+                                    <span id="rsi-value">50</span>
+                                </div>
+                                <small id="rsi-signal" class="text-muted">Neutral</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">MACD</h6>
+                                <div class="d-flex align-items-center">
+                                    <span id="macd-value">0.00</span>
+                                    <small id="macd-signal-value" class="ms-2">(Signal: 0.00)</small>
+                                </div>
+                                <small id="macd-signal" class="text-muted">Neutral</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">Moving Averages</h6>
+                                <div>
+                                    <small>SMA (7): <span id="sma-short-value">0.00</span></small>
+                                </div>
+                                <div>
+                                    <small>SMA (25): <span id="sma-long-value">0.00</span></small>
+                                </div>
+                                <small id="ma-signal" class="text-muted">Neutral</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">Bollinger Bands</h6>
+                                <div>
+                                    <small>Upper: <span id="bb-upper-value">0.00</span></small>
+                                </div>
+                                <div>
+                                    <small>Middle: <span id="bb-middle-value">0.00</span></small>
+                                </div>
+                                <div>
+                                    <small>Lower: <span id="bb-lower-value">0.00</span></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-responsive mt-3">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Indicator</th>
+                                <th>Value</th>
+                                <th>Signal</th>
+                                <th>Strength</th>
+                            </tr>
+                        </thead>
+                        <tbody id="technical-signals-table">
+                            <tr>
+                                <td colspan="4" class="text-center">No technical signals available</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sentiment Analysis -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Sentiment Analysis</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Tweets Analyzed</h6>
+                                <h3 id="tweets-count">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Sentiment Score</h6>
+                                <h3 id="sentiment-score-value">0.00</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Influencer Sentiment</h6>
+                                <h3 id="influencer-sentiment">Neutral</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="sentiment-chart" style="height: 250px;">
+                    <div class="d-flex justify-content-center align-items-center h-100">
+                        <p class="text-muted">No sentiment data available</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Tweets</h5>
+            </div>
+            <div class="card-body">
+                <div id="recent-tweets">
+                    <div class="d-flex justify-content-center align-items-center h-100">
+                        <p class="text-muted">No tweets available</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Combined Signal -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Combined Signal Factors</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Factor</th>
+                                <th>Signal</th>
+                                <th>Contribution</th>
+                            </tr>
+                        </thead>
+                        <tbody id="combined-signals-table">
+                            <tr>
+                                <td colspan="3" class="text-center">No combined signal data available</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Populate token select
+        populateTokenSelect();
+        
+        // Token select change
+        $('#token-select').change(function() {
+            const token = $(this).val();
+            if (token) {
+                fetchTokenAnalysis(token);
+            }
+        });
+        
+        // Analyze button
+        $('#analyze-btn').click(function() {
+            const token = $('#token-select').val();
+            if (token) {
+                analyzeToken(token);
+            } else {
+                showAlert('warning', 'Please select a token to analyze');
+            }
+        });
+        
+        // Refresh button
+        $('#refresh-btn').click(function() {
+            const token = $('#token-select').val();
+            if (token) {
+                fetchTokenAnalysis(token);
+            } else {
+                populateTokenSelect();
+            }
+        });
+        
+        // Functions
+        function populateTokenSelect() {
+            $.ajax({
+                url: '/api/status',
+                type: 'GET',
+                success: function(response) {
+                    if (response.tokens_analyzed && response.tokens_analyzed.length > 0) {
+                        const tokenSelect = $('#token-select');
+                        tokenSelect.empty();
+                        tokenSelect.append('<option value="">Select a token to analyze</option>');
+                        
+                        response.tokens_analyzed.forEach(function(token) {
+                            tokenSelect.append(`<option value="${token}">${token}</option>`);
+                        });
+                    }
+                }
+            });
+        }
+        
+        function fetchTokenAnalysis(token) {
+            $.ajax({
+                url: `/api/analysis/${token}`,
+                type: 'GET',
+                success: function(response) {
+                    if (response.status !== 'error') {
+                        updateAnalysisData(token, response);
+                        fetchTokenChart(token);
+                    } else {
+                        showAlert('danger', `Error fetching analysis for ${token}: ${response.message}`);
+                    }
+                },
+                error: function() {
+                    showAlert('danger', `Error fetching analysis for ${token}`);
+                }
+            });
+        }
+        
+        function analyzeToken(token) {
+            showAlert('info', `Analyzing ${token}...`);
+            
+            $.ajax({
+                url: `/api/analyze/${token}`,
+                type: 'POST',
+                success: function(response) {
+                    if (response.status !== 'error') {
+                        updateAnalysisData(token, response);
+                        fetchTokenChart(token);
+                        showAlert('success', `Analysis for ${token} completed`);
+                    } else {
+                        showAlert('danger', `Error analyzing ${token}: ${response.message}`);
+                    }
+                },
+                error: function() {
+                    showAlert('danger', `Error analyzing ${token}`);
+                }
+            });
+        }
+        
+        function fetchTokenChart(token) {
+            $.ajax({
+                url: `/api/chart/${token}`,
+                type: 'GET',
+                success: function(response) {
+                    if (response.chart) {
+                        const chartData = JSON.parse(response.chart);
+                        Plotly.newPlot('price-chart', chartData.data, chartData.layout);
+                    } else {
+                        $('#price-chart').html('<div class="d-flex justify-content-center align-items-center h-100"><p class="text-muted">No chart data available</p></div>');
+                    }
+                },
+                error: function() {
+                    $('#price-chart').html('<div class="d-flex justify-content-center align-items-center h-100"><p class="text-muted">Error loading chart</p></div>');
+                }
+            });
+        }
+        
+        function updateAnalysisData(token, data) {
+            // Extract data
+            const technicalAnalysis = data.analysis.technical_analysis;
+            const sentimentAnalysis = data.analysis.sentiment_analysis;
+            const combinedSignal = data.analysis.combined_signal;
+            
+            // Update technical signal
+            if (technicalAnalysis && technicalAnalysis.signals) {
+                const technicalSignal = technicalAnalysis.signals.overall_signal;
+                const technicalStrength = technicalAnalysis.signals.signal_strength;
+                
+                // Update badge
+                const technicalBadge = $('#technical-signal-badge');
+                technicalBadge.removeClass('bg-success bg-danger bg-warning bg-secondary');
+                
+                if (technicalSignal === 'strong_buy' || technicalSignal === 'buy') {
+                    technicalBadge.addClass('bg-success');
+                } else if (technicalSignal === 'strong_sell' || technicalSignal === 'sell') {
+                    technicalBadge.addClass('bg-danger');
+                } else {
+                    technicalBadge.addClass('bg-secondary');
+                }
+                
+                technicalBadge.text(formatSignal(technicalSignal));
+                $('#technical-signal-strength').text(technicalStrength);
+                
+                // Update technical indicators
+                if (technicalAnalysis.indicators) {
+                    const indicators = technicalAnalysis.indicators;
+                    
+                    // RSI
+                    if (indicators.rsi !== undefined) {
+                        const rsi = indicators.rsi;
+                        $('#rsi-value').text(rsi.toFixed(2));
+                        $('#rsi-progress').css('width', `${rsi}%`);
+                        
+                        if (rsi > 70) {
+                            $('#rsi-progress').removeClass('bg-success bg-danger bg-warning').addClass('bg-danger');
+                            $('#rsi-signal').text('Overbought');
+                        } else if (rsi < 30) {
+                            $('#rsi-progress').removeClass('bg-success bg-danger bg-warning').addClass('bg-success');
+                            $('#rsi-signal').text('Oversold');
+                        } else {
+                            $('#rsi-progress').removeClass('bg-success bg-danger bg-warning').addClass('bg-warning');
+                            $('#rsi-signal').text('Neutral');
+                        }
+                    }
+                    
+                    // MACD
+                    if (indicators.macd !== undefined) {
+                        $('#macd-value').text(indicators.macd.toFixed(4));
+                        $('#macd-signal-value').text(`(Signal: ${indicators.macd_signal.toFixed(4)})`);
+                        
+                        if (indicators.macd > indicators.macd_signal) {
+                            $('#macd-signal').text('Bullish');
+                        } else if (indicators.macd < indicators.macd_signal) {
+                            $('#macd-signal').text('Bearish');
+                        } else {
+                            $('#macd-signal').text('Neutral');
+                        }
+                    }
+                    
+                    // Moving Averages
+                    if (indicators.sma_short !== undefined && indicators.sma_long !== undefined) {
+                        $('#sma-short-value').text(indicators.sma_short.toFixed(2));
+                        $('#sma-long-value').text(indicators.sma_long.toFixed(2));
+                        
+                        if (indicators.sma_short > indicators.sma_long) {
+                            $('#ma-signal').text('Bullish');
+                        } else if (indicators.sma_short < indicators.sma_long) {
+                            $('#ma-signal').text('Bearish');
+                        } else {
+                            $('#ma-signal').text('Neutral');
+                        }
+                    }
+                    
+                    // Bollinger Bands
+                    if (indicators.bollinger_upper !== undefined) {
+                        $('#bb-upper-value').text(indicators.bollinger_upper.toFixed(2));
+                        $('#bb-middle-value').text(indicators.bollinger_middle.toFixed(2));
+                        $('#bb-lower-value').text(indicators.bollinger_lower.toFixed(2));
+                    }
+                }
+                
+                // Update technical signals table
+                const technicalSignalsTable = $('#technical-signals-table');
+                technicalSignalsTable.empty();
+                
+                if (technicalAnalysis.signals.buy_signals && technicalAnalysis.signals.buy_signals.length > 0) {
+                    technicalAnalysis.signals.buy_signals.forEach(function(signal) {
+                        const row = $('<tr></tr>');
+                        row.append(`<td>${signal.indicator}</td>`);
+                        row.append(`<td>${signal.description}</td>`);
+                        row.append(`<td><span class="badge bg-success">Buy</span></td>`);
+                        row.append(`<td>${signal.strength}</td>`);
+                        technicalSignalsTable.append(row);
+                    });
+                }
+                
+                if (technicalAnalysis.signals.sell_signals && technicalAnalysis.signals.sell_signals.length > 0) {
+                    technicalAnalysis.signals.sell_signals.forEach(function(signal) {
+                        const row = $('<tr></tr>');
+                        row.append(`<td>${signal.indicator}</td>`);
+                        row.append(`<td>${signal.description}</td>`);
+                        row.append(`<td><span class="badge bg-danger">Sell</span></td>`);
+                        row.append(`<td>${signal.strength}</td>`);
+                        technicalSignalsTable.append(row);
+                    });
+                }
+                
+                if (technicalSignalsTable.children().length === 0) {
+                    technicalSignalsTable.append('<tr><td colspan="4" class="text-center">No technical signals available</td></tr>');
+                }
+            }
+            
+            // Update sentiment signal
+            if (sentimentAnalysis) {
+                const sentimentScore = sentimentAnalysis.sentiment_score;
+                const sentiment = sentimentAnalysis.sentiment;
+                
+                // Update badge
+                const sentimentBadge = $('#sentiment-signal-badge');
+                sentimentBadge.removeClass('bg-success bg-danger bg-warning bg-secondary');
+                
+                if (sentiment === 'positive') {
+                    sentimentBadge.addClass('bg-success');
+                } else if (sentiment === 'negative') {
+                    sentimentBadge.addClass('bg-danger');
+                } else {
+                    sentimentBadge.addClass('bg-secondary');
+                }
+                
+                sentimentBadge.text(formatSignal(sentiment));
+                $('#sentiment-score').text(sentimentScore.toFixed(2));
+                
+                // Update sentiment data
+                $('#tweets-count').text(sentimentAnalysis.tweet_count);
+                $('#sentiment-score-value').text(sentimentScore.toFixed(2));
+                $('#influencer-sentiment').text(formatSignal(sentimentAnalysis.influencer_sentiment));
+                
+                // Create sentiment chart
+                const sentimentData = [
+                    {
+                        values: [
+                            sentimentAnalysis.positive_percentage,
+                            sentimentAnalysis.neutral_percentage,
+                            sentimentAnalysis.negative_percentage
+                        ],
+                        labels: ['Positive', 'Neutral', 'Negative'],
+                        type: 'pie',
+                        marker: {
+                            colors: ['#28a745', '#6c757d', '#dc3545']
+                        }
+                    }
+                ];
+                
+                const sentimentLayout = {
+                    height: 250,
+                    margin: { t: 0, b: 0, l: 0, r: 0 },
+                    showlegend: true,
+                    legend: { orientation: 'h' }
+                };
+                
+                Plotly.newPlot('sentiment-chart', sentimentData, sentimentLayout);
+                
+                // Update recent tweets
+                const recentTweets = $('#recent-tweets');
+                recentTweets.empty();
+                
+                if (sentimentAnalysis.recent_tweets && sentimentAnalysis.recent_tweets.length > 0) {
+                    const tweetsList = $('<div class="list-group"></div>');
+                    
+                    sentimentAnalysis.recent_tweets.forEach(function(tweet) {
+                        const tweetClass = tweet.sentiment === 'positive' ? 'list-group-item-success' : 
+                                          tweet.sentiment === 'negative' ? 'list-group-item-danger' : '';
+                        
+                        const tweetItem = $(`<div class="list-group-item ${tweetClass}"></div>`);
+                        
+                        tweetItem.append(`<div class="d-flex justify-content-between align-items-center">
+                            <small>@${tweet.username}</small>
+                            <span class="badge ${getSentimentClass(tweet.sentiment)}">${formatSignal(tweet.sentiment)}</span>
+                        </div>`);
+                        
+                        tweetItem.append(`<p class="mb-1">${tweet.text}</p>`);
+                        
+                        tweetItem.append(`<div class="d-flex justify-content-between align-items-center">
+                            <small>Score: ${tweet.sentiment_score.toFixed(2)}</small>
+                            <small>Likes: ${tweet.like_count}, Retweets: ${tweet.retweet_count}</small>
+                        </div>`);
+                        
+                        tweetsList.append(tweetItem);
+                    });
+                    
+                    recentTweets.append(tweetsList);
+                } else {
+                    recentTweets.html('<div class="d-flex justify-content-center align-items-center h-100"><p class="text-muted">No tweets available</p></div>');
+                }
+            }
+            
+            // Update combined signal
+            if (combinedSignal) {
+                const combinedSignalValue = combinedSignal.signal;
+                const combinedStrength = combinedSignal.strength;
+                
+                // Update badge
+                const combinedBadge = $('#combined-signal-badge');
+                combinedBadge.removeClass('bg-success bg-danger bg-warning bg-secondary');
+                
+                if (combinedSignalValue === 'strong_buy' || combinedSignalValue === 'buy') {
+                    combinedBadge.addClass('bg-success');
+                } else if (combinedSignalValue === 'strong_sell' || combinedSignalValue === 'sell') {
+                    combinedBadge.addClass('bg-danger');
+                } else {
+                    combinedBadge.addClass('bg-secondary');
+                }
+                
+                combinedBadge.text(formatSignal(combinedSignalValue));
+                $('#combined-signal-strength').text(combinedStrength);
+                
+                // Update combined signals table
+                const combinedSignalsTable = $('#combined-signals-table');
+                combinedSignalsTable.empty();
+                
+                if (combinedSignal.factors && combinedSignal.factors.length > 0) {
+                    combinedSignal.factors.forEach(function(factor) {
+                        const row = $('<tr></tr>');
+                        row.append(`<td>${factor.factor}</td>`);
+                        row.append(`<td>${factor.signal}</td>`);
+                        
+                        const contributionClass = factor.contribution >= 0 ? 'text-success' : 'text-danger';
+                        row.append(`<td class="${contributionClass}">${factor.contribution}</td>`);
+                        
+                        combinedSignalsTable.append(row);
+                    });
+                } else {
+                    combinedSignalsTable.append('<tr><td colspan="3" class="text-center">No combined signal data available</td></tr>');
+                }
+            }
+        }
+        
+        // Helper functions
+        function getSentimentClass(sentiment) {
+            switch (sentiment) {
+                case 'positive':
+                    return 'bg-success';
+                case 'negative':
+                    return 'bg-danger';
+                default:
+                    return 'bg-secondary';
+            }
+        }
+        
+        function formatSignal(signal) {
+            return signal.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+    });
+</script>
+{% endblock %}

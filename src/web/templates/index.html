@@ -1,0 +1,561 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Crypto Trading Agent{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Dashboard</h1>
+    </div>
+</div>
+
+<!-- Status Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Agent Status</h5>
+                <p class="card-text">
+                    <span id="dashboard-agent-status" class="badge bg-danger">Stopped</span>
+                </p>
+                <div class="btn-group" role="group">
+                    <button id="dashboard-start-btn" class="btn btn-success btn-sm">
+                        <i class="fas fa-play me-1"></i>Start
+                    </button>
+                    <button id="dashboard-stop-btn" class="btn btn-danger btn-sm">
+                        <i class="fas fa-stop me-1"></i>Stop
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Portfolio Value</h5>
+                <p class="card-text">
+                    <span id="portfolio-value">$0.00</span>
+                </p>
+                <a href="{{ url_for('portfolio') }}" class="btn btn-primary btn-sm">View Details</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Active Trades</h5>
+                <p class="card-text">
+                    <span id="active-trades-count">0</span>
+                </p>
+                <a href="{{ url_for('portfolio') }}" class="btn btn-primary btn-sm">View Details</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Last Update</h5>
+                <p class="card-text">
+                    <span id="dashboard-last-update">Never</span>
+                </p>
+                <button id="refresh-btn" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-sync-alt me-1"></i>Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Token Analysis -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Token Analysis</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Token</th>
+                                <th>Price</th>
+                                <th>24h Change</th>
+                                <th>Technical Signal</th>
+                                <th>Sentiment</th>
+                                <th>Combined Signal</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="token-analysis-table">
+                            <tr>
+                                <td colspan="7" class="text-center">No data available</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Portfolio Composition</h5>
+            </div>
+            <div class="card-body">
+                <div id="portfolio-chart" style="height: 300px;">
+                    <div class="d-flex justify-content-center align-items-center h-100">
+                        <p class="text-muted">No portfolio data available</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Price Chart</h5>
+                    <select id="token-select" class="form-select form-select-sm" style="width: auto;">
+                        <option value="">Select Token</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="price-chart" style="height: 300px;">
+                    <div class="d-flex justify-content-center align-items-center h-100">
+                        <p class="text-muted">Select a token to view price chart</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Token</th>
+                                <th>Action</th>
+                                <th>Amount</th>
+                                <th>Price</th>
+                                <th>Value</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-activity-table">
+                            <tr>
+                                <td colspan="7" class="text-center">No recent activity</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize Socket.IO
+        const socket = io();
+        
+        // Listen for agent updates
+        socket.on('agent_update', function(data) {
+            updateDashboard(data);
+        });
+        
+        // Start agent button
+        $('#dashboard-start-btn').click(function() {
+            $.ajax({
+                url: '/api/start',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ interval: 60 }),
+                success: function(response) {
+                    if (response.status === 'success') {
+                        updateAgentStatus(true);
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function() {
+                    alert('Error starting agent');
+                }
+            });
+        });
+        
+        // Stop agent button
+        $('#dashboard-stop-btn').click(function() {
+            $.ajax({
+                url: '/api/stop',
+                type: 'POST',
+                contentType: 'application/json',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        updateAgentStatus(false);
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function() {
+                    alert('Error stopping agent');
+                }
+            });
+        });
+        
+        // Refresh button
+        $('#refresh-btn').click(function() {
+            fetchDashboardData();
+        });
+        
+        // Token select change
+        $('#token-select').change(function() {
+            const token = $(this).val();
+            if (token) {
+                fetchTokenChart(token);
+            }
+        });
+        
+        // Initial data fetch
+        fetchDashboardData();
+        
+        // Functions
+        function fetchDashboardData() {
+            // Get agent status
+            $.ajax({
+                url: '/api/status',
+                type: 'GET',
+                success: function(response) {
+                    updateAgentStatus(response.agent_running);
+                    
+                    if (response.last_update) {
+                        $('#dashboard-last-update').text(formatDateTime(response.last_update));
+                        $('#last-update').text('Last update: ' + formatDateTime(response.last_update));
+                    }
+                    
+                    // Populate token select
+                    if (response.tokens_analyzed && response.tokens_analyzed.length > 0) {
+                        const tokenSelect = $('#token-select');
+                        tokenSelect.empty();
+                        tokenSelect.append('<option value="">Select Token</option>');
+                        
+                        response.tokens_analyzed.forEach(function(token) {
+                            tokenSelect.append(`<option value="${token}">${token}</option>`);
+                        });
+                    }
+                }
+            });
+            
+            // Get portfolio data
+            $.ajax({
+                url: '/api/portfolio',
+                type: 'GET',
+                success: function(response) {
+                    if (response.status !== 'error') {
+                        updatePortfolioData(response);
+                    }
+                }
+            });
+            
+            // Get analysis data for all tokens
+            $.ajax({
+                url: '/api/status',
+                type: 'GET',
+                success: function(response) {
+                    if (response.tokens_analyzed && response.tokens_analyzed.length > 0) {
+                        const tokenAnalysisTable = $('#token-analysis-table');
+                        tokenAnalysisTable.empty();
+                        
+                        response.tokens_analyzed.forEach(function(token) {
+                            $.ajax({
+                                url: `/api/analysis/${token}`,
+                                type: 'GET',
+                                success: function(analysisData) {
+                                    if (analysisData.status !== 'error') {
+                                        addTokenAnalysisRow(token, analysisData);
+                                    }
+                                }
+                            });
+                        });
+                    }
+                }
+            });
+        }
+        
+        function updateDashboard(data) {
+            if (data.portfolio) {
+                updatePortfolioData(data.portfolio);
+            }
+            
+            if (data.analysis) {
+                updateAnalysisData(data.analysis);
+            }
+            
+            if (data.timestamp) {
+                $('#dashboard-last-update').text(formatDateTime(data.timestamp));
+                $('#last-update').text('Last update: ' + formatDateTime(data.timestamp));
+            }
+        }
+        
+        function updateAgentStatus(isRunning) {
+            if (isRunning) {
+                $('#dashboard-agent-status').removeClass('bg-danger').addClass('bg-success').text('Running');
+                $('#agent-status i').removeClass('text-danger').addClass('text-success');
+                $('#agent-status').html('<i class="fas fa-circle text-success me-1"></i>Agent Running');
+                $('#start-agent-btn, #dashboard-start-btn').hide();
+                $('#stop-agent-btn, #dashboard-stop-btn').show();
+            } else {
+                $('#dashboard-agent-status').removeClass('bg-success').addClass('bg-danger').text('Stopped');
+                $('#agent-status i').removeClass('text-success').addClass('text-danger');
+                $('#agent-status').html('<i class="fas fa-circle text-danger me-1"></i>Agent Stopped');
+                $('#start-agent-btn, #dashboard-start-btn').show();
+                $('#stop-agent-btn, #dashboard-stop-btn').hide();
+            }
+        }
+        
+        function updatePortfolioData(portfolio) {
+            // Update portfolio value
+            let totalValue = 0;
+            
+            // Count active trades
+            let activeTradesCount = 0;
+            if (portfolio.active_trades) {
+                activeTradesCount = Object.keys(portfolio.active_trades).length;
+            }
+            
+            $('#active-trades-count').text(activeTradesCount);
+            
+            // Create portfolio chart data
+            const chartData = [];
+            
+            if (portfolio.chains) {
+                for (const chain in portfolio.chains) {
+                    // Add native token
+                    const nativeBalance = parseFloat(portfolio.chains[chain].native_balance);
+                    if (nativeBalance > 0) {
+                        // In a real app, we would convert to USD
+                        const nativeValue = nativeBalance * (chain === 'ethereum' ? 3000 : 300); // Dummy prices
+                        totalValue += nativeValue;
+                        
+                        chartData.push({
+                            name: chain === 'ethereum' ? 'ETH' : 'BNB',
+                            value: nativeValue
+                        });
+                    }
+                    
+                    // Add other tokens
+                    if (portfolio.chains[chain].tokens) {
+                        for (const token in portfolio.chains[chain].tokens) {
+                            const tokenBalance = parseFloat(portfolio.chains[chain].tokens[token].balance);
+                            if (tokenBalance > 0) {
+                                // In a real app, we would convert to USD
+                                const tokenValue = tokenBalance * (token === 'ETH' ? 3000 : token === 'BNB' ? 300 : 1); // Dummy prices
+                                totalValue += tokenValue;
+                                
+                                chartData.push({
+                                    name: token,
+                                    value: tokenValue
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            
+            $('#portfolio-value').text('$' + totalValue.toFixed(2));
+            
+            // Create portfolio chart
+            if (chartData.length > 0) {
+                const labels = chartData.map(item => item.name);
+                const values = chartData.map(item => item.value);
+                
+                const data = [{
+                    values: values,
+                    labels: labels,
+                    type: 'pie'
+                }];
+                
+                const layout = {
+                    height: 300,
+                    margin: { t: 0, b: 0, l: 0, r: 0 }
+                };
+                
+                Plotly.newPlot('portfolio-chart', data, layout);
+            }
+        }
+        
+        function updateAnalysisData(analysisData) {
+            const tokenAnalysisTable = $('#token-analysis-table');
+            tokenAnalysisTable.empty();
+            
+            for (const token in analysisData) {
+                addTokenAnalysisRow(token, analysisData[token]);
+            }
+        }
+        
+        function addTokenAnalysisRow(token, data) {
+            const tokenAnalysisTable = $('#token-analysis-table');
+            
+            // Extract data
+            let price = 0;
+            let change24h = 0;
+            let technicalSignal = 'neutral';
+            let sentiment = 'neutral';
+            let combinedSignal = 'neutral';
+            let action = 'none';
+            
+            if (data.analysis && data.analysis.technical_analysis && data.analysis.technical_analysis.price_data) {
+                price = data.analysis.technical_analysis.price_data.latest.close;
+                change24h = data.analysis.technical_analysis.price_data.change_24h || 0;
+            }
+            
+            if (data.analysis && data.analysis.technical_analysis && data.analysis.technical_analysis.signals) {
+                technicalSignal = data.analysis.technical_analysis.signals.overall_signal;
+            }
+            
+            if (data.analysis && data.analysis.sentiment_analysis) {
+                sentiment = data.analysis.sentiment_analysis.sentiment;
+            }
+            
+            if (data.analysis && data.analysis.combined_signal) {
+                combinedSignal = data.analysis.combined_signal.signal;
+            }
+            
+            action = data.action_taken || 'none';
+            
+            // Create row
+            const row = $('<tr></tr>');
+            
+            // Token
+            row.append(`<td><strong>${token}</strong></td>`);
+            
+            // Price
+            row.append(`<td>$${price.toFixed(2)}</td>`);
+            
+            // 24h Change
+            const changeClass = change24h >= 0 ? 'text-success' : 'text-danger';
+            const changeIcon = change24h >= 0 ? 'fa-caret-up' : 'fa-caret-down';
+            row.append(`<td class="${changeClass}"><i class="fas ${changeIcon}"></i> ${(change24h * 100).toFixed(2)}%</td>`);
+            
+            // Technical Signal
+            const techClass = getTechnicalSignalClass(technicalSignal);
+            row.append(`<td><span class="badge ${techClass}">${formatSignal(technicalSignal)}</span></td>`);
+            
+            // Sentiment
+            const sentimentClass = getSentimentClass(sentiment);
+            row.append(`<td><span class="badge ${sentimentClass}">${formatSignal(sentiment)}</span></td>`);
+            
+            // Combined Signal
+            const combinedClass = getTechnicalSignalClass(combinedSignal);
+            row.append(`<td><span class="badge ${combinedClass}">${formatSignal(combinedSignal)}</span></td>`);
+            
+            // Action
+            const actionClass = getActionClass(action);
+            row.append(`<td><span class="badge ${actionClass}">${formatAction(action)}</span></td>`);
+            
+            tokenAnalysisTable.append(row);
+        }
+        
+        function fetchTokenChart(token) {
+            $.ajax({
+                url: `/api/chart/${token}`,
+                type: 'GET',
+                success: function(response) {
+                    if (response.chart) {
+                        const chartData = JSON.parse(response.chart);
+                        Plotly.newPlot('price-chart', chartData.data, chartData.layout);
+                    } else {
+                        $('#price-chart').html('<div class="d-flex justify-content-center align-items-center h-100"><p class="text-muted">No chart data available</p></div>');
+                    }
+                },
+                error: function() {
+                    $('#price-chart').html('<div class="d-flex justify-content-center align-items-center h-100"><p class="text-muted">Error loading chart</p></div>');
+                }
+            });
+        }
+        
+        // Helper functions
+        function formatDateTime(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleString();
+        }
+        
+        function getTechnicalSignalClass(signal) {
+            switch (signal) {
+                case 'strong_buy':
+                    return 'bg-success';
+                case 'buy':
+                    return 'bg-success';
+                case 'strong_sell':
+                    return 'bg-danger';
+                case 'sell':
+                    return 'bg-danger';
+                default:
+                    return 'bg-secondary';
+            }
+        }
+        
+        function getSentimentClass(sentiment) {
+            switch (sentiment) {
+                case 'positive':
+                    return 'bg-success';
+                case 'negative':
+                    return 'bg-danger';
+                default:
+                    return 'bg-secondary';
+            }
+        }
+        
+        function getActionClass(action) {
+            switch (action) {
+                case 'buy':
+                    return 'bg-success';
+                case 'sell':
+                    return 'bg-danger';
+                case 'stop_loss':
+                    return 'bg-warning';
+                case 'take_profit':
+                    return 'bg-info';
+                default:
+                    return 'bg-secondary';
+            }
+        }
+        
+        function formatSignal(signal) {
+            return signal.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+        
+        function formatAction(action) {
+            switch (action) {
+                case 'buy':
+                    return 'Buy';
+                case 'sell':
+                    return 'Sell';
+                case 'stop_loss':
+                    return 'Stop Loss';
+                case 'take_profit':
+                    return 'Take Profit';
+                default:
+                    return 'None';
+            }
+        }
+    });
+</script>
+{% endblock %}

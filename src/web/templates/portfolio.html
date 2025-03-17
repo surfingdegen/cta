@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+
+{% block title %}Portfolio - Crypto Trading Agent{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Portfolio</h1>
+    </div>
+</div>
+
+<!-- Portfolio Summary -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Total Value</h5>
+                <h2 id="portfolio-total-value">$0.00</h2>
+                <p class="text-muted">Across all chains and tokens</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Active Trades</h5>
+                <h2 id="active-trades-count">0</h2>
+                <p class="text-muted">Currently open positions</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Performance</h5>
+                <h2 id="portfolio-performance">0.00%</h2>
+                <p class="text-muted">Realized profit/loss</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Portfolio Composition -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Portfolio Composition</h5>
+            </div>
+            <div class="card-body">
+                <div id="portfolio-chart" style="height: 400px;">
+                    <div class="d-flex justify-content-center align-items-center h-100">
+                        <p class="text-muted">No portfolio data available</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Chain Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div id="chain-distribution-chart" style="height: 400px;">
+                    <div class="d-flex justify-content-center align-items-center h-100">
+                        <p class="text-muted">No chain distribution data available</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Holdings Table -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Holdings</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Chain</th>
+                                <th>Token</th>
+                                <th>Balance</th>
+                                <th>Value (USD)</th>
+                                <th>Allocation</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="holdings-table">
+                            <tr>
+                                <td colspan="6" class="text-center">No holdings data available</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Active Trades -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Active Trades</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Token</th>
+                                <th>Entry Price</th>
+                                <th>Current Price</th>
+                                <th>Amount</th>
+                                <th>Value</th>
+                                <th>P/L</th>
+                                <th>Stop Loss</th>
+                                <th>Take Profit</th>
+                                <th>Entry Time</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="active-trades-table">
+                            <tr>
+                                <td colspan="10" class="text-center">No active trades</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trade History -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Trade History</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Token</th>
+                                <th>Action</th>
+                                <th>Amount</th>
+                                <th>Price</th>
+                                <th>Value</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trade-history-table">
+                            <tr>
+                                <td colspan="7" class="text-center">No trade history</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Fetch portfolio data
+        fetchPortfolioData();
+        
+        // Refresh button
+        $('#refresh-btn').click(function() {
+            fetchPortfolioData();
+        });
+        
+        // Functions
+        function fetchPortfolioData() {
+            $.ajax({
+                url: '/api/portfolio',
+                type: 'GET',
+                success: function(response) {
+                    if (response.status !== 'error') {
+                        updatePortfolioData(response);
+                    }
+                }
+            });
+        }
+        
+        function updatePortfolioData(portfolio) {
+            // Update portfolio value
+            let totalValue = 0;
+            
+            // Count active trades
+            let activeTradesCount = 0;
+            if (portfolio.active_trades) {
+                activeTradesCount = Object.keys(portfolio.active_trades).length;
+                
+                // Update active trades table
+                updateActiveTradesTable(portfolio.active_trades);
+            }
+            
+            $('#active-trades-count').text(activeTradesCount);
+            
+            // Create portfolio chart data
+            const chartData = [];
+            const chainData = [];
+            
+            // Clear holdings table
+            const holdingsTable = $('#holdings-table');
+            holdingsTable.empty();
+            
+            if (portfolio.chains) {
+                for (const chain in portfolio.chains) {
+                    let chainTotal = 0;
+                    
+                    // Add native token
+                    const nativeBalance = parseFloat(portfolio.chains[chain].native_balance);
+                    if (nativeBalance > 0) {
+                        // In a real app, we would convert to USD
+                        const nativeValue = nativeBalance * (chain === 'ethereum' ? 3000 : 300); // Dummy prices
+                        totalValue += nativeValue;
+                        chainTotal += nativeValue;
+                        
+                        chartData.push({
+                            name: chain === 'ethereum' ? 'ETH' : 'BNB',
+                            value: nativeValue
+                        });
+                        
+                        // Add to holdings table
+                        const nativeRow = $('<tr></tr>');
+                        nativeRow.append(`<td>${chain}</td>`);
+                        nativeRow.append(`<td>${chain === 'ethereum' ? 'ETH' : 'BNB'} (Native)</td>`);
+                        nativeRow.append(`<td>${nativeBalance.toFixed(6)}</td>`);
+                        nativeRow.append(`<td>$${nativeValue.toFixed(2)}</td>`);
+                        nativeRow.append(`<td>-</td>`);
+                        nativeRow.append(`<td><button class="btn btn-sm btn-outline-primary">Send</button></td>`);
+                        holdingsTable.append(nativeRow);
+                    }
+                    
+                    // Add other tokens
+                    if (portfolio.chains[chain].tokens) {
+                        for (const token in portfolio.chains[chain].tokens) {
+                            const tokenBalance = parseFloat(portfolio.chains[chain].tokens[token].balance);
+                            if (tokenBalance > 0) {
+                                // In a real app, we would convert to USD
+                                const tokenValue = tokenBalance * (token === 'ETH' ? 3000 : token === 'BNB' ? 300 : 1); // Dummy prices
+                                totalValue += tokenValue;
+                                chainTotal += tokenValue;
+                                
+                                chartData.push({
+                                    name: token,
+                                    value: tokenValue
+                                });
+                                
+                                // Add to holdings table
+                                const tokenRow = $('<tr></tr>');
+                                tokenRow.append(`<td>${chain}</td>`);
+                                tokenRow.append(`<td>${token}</td>`);
+                                tokenRow.append(`<td>${tokenBalance.toFixed(6)}</td>`);
+                                tokenRow.append(`<td>$${tokenValue.toFixed(2)}</td>`);
+                                tokenRow.append(`<td>${((tokenValue / totalValue) * 100).toFixed(2)}%</td>`);
+                                tokenRow.append(`<td><button class="btn btn-sm btn-outline-primary">Send</button></td>`);
+                                holdingsTable.append(tokenRow);
+                            }
+                        }
+                    }
+                    
+                    // Add chain to chain distribution data
+                    if (chainTotal > 0) {
+                        chainData.push({
+                            name: chain,
+                            value: chainTotal
+                        });
+                    }
+                }
+            }
+            
+            // Update total value
+            $('#portfolio-total-value').text('$' + totalValue.toFixed(2));
+            
+            // Update performance (dummy data for now)
+            $('#portfolio-performance').text('5.23%');
+            
+            // Create portfolio chart
+            if (chartData.length > 0) {
+                const labels = chartData.map(item => item.name);
+                const values = chartData.map(item => item.value);
+                
+                const data = [{
+                    values: values,
+                    labels: labels,
+                    type: 'pie',
+                    hole: 0.4,
+                    textinfo: 'label+percent',
+                    insidetextorientation: 'radial'
+                }];
+                
+                const layout = {
+                    height: 400,
+                    margin: { t: 0, b: 0, l: 0, r: 0 },
+                    showlegend: false
+                };
+                
+                Plotly.newPlot('portfolio-chart', data, layout);
+            }
+            
+            // Create chain distribution chart
+            if (chainData.length > 0) {
+                const chainLabels = chainData.map(item => item.name);
+                const chainValues = chainData.map(item => item.value);
+                
+                const chainChartData = [{
+                    values: chainValues,
+                    labels: chainLabels,
+                    type: 'pie',
+                    hole: 0.4,
+                    textinfo: 'label+percent',
+                    insidetextorientation: 'radial'
+                }];
+                
+                const chainLayout = {
+                    height: 400,
+                    margin: { t: 0, b: 0, l: 0, r: 0 },
+                    showlegend: false
+                };
+                
+                Plotly.newPlot('chain-distribution-chart', chainChartData, chainLayout);
+            }
+            
+            // If no holdings, show message
+            if (holdingsTable.children().length === 0) {
+                holdingsTable.append('<tr><td colspan="6" class="text-center">No holdings data available</td></tr>');
+            }
+        }
+        
+        function updateActiveTradesTable(activeTrades) {
+            const activeTradesTable = $('#active-trades-table');
+            activeTradesTable.empty();
+            
+            if (Object.keys(activeTrades).length === 0) {
+                activeTradesTable.append('<tr><td colspan="10" class="text-center">No active trades</td></tr>');
+                return;
+            }
+            
+            for (const token in activeTrades) {
+                const trade = activeTrades[token];
+                const row = $('<tr></tr>');
+                
+                // Current price (dummy data for now)
+                const currentPrice = trade.entry_price * (1 + (Math.random() * 0.1 - 0.05));
+                
+                // Calculate P/L
+                const pnl = ((currentPrice - trade.entry_price) / trade.entry_price) * 100;
+                const pnlClass = pnl >= 0 ? 'text-success' : 'text-danger';
+                
+                row.append(`<td><strong>${token}</strong></td>`);
+                row.append(`<td>$${parseFloat(trade.entry_price).toFixed(2)}</td>`);
+                row.append(`<td>$${currentPrice.toFixed(2)}</td>`);
+                row.append(`<td>${parseFloat(trade.amount).toFixed(6)}</td>`);
+                row.append(`<td>$${(parseFloat(trade.amount) * currentPrice).toFixed(2)}</td>`);
+                row.append(`<td class="${pnlClass}">${pnl.toFixed(2)}%</td>`);
+                row.append(`<td>$${parseFloat(trade.stop_loss).toFixed(2)}</td>`);
+                row.append(`<td>$${parseFloat(trade.take_profit).toFixed(2)}</td>`);
+                row.append(`<td>${formatDateTime(trade.entry_time)}</td>`);
+                row.append(`<td><button class="btn btn-sm btn-danger">Close</button></td>`);
+                
+                activeTradesTable.append(row);
+            }
+        }
+    });
+</script>
+{% endblock %}

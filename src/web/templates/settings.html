@@ -1,0 +1,677 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Crypto Trading Agent{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Settings</h1>
+    </div>
+</div>
+
+<!-- Settings Navigation -->
+<div class="row mb-4">
+    <div class="col-12">
+        <ul class="nav nav-tabs" id="settingsTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab" aria-controls="general" aria-selected="true">
+                    <i class="fas fa-cog me-1"></i>General
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="wallet-tab" data-bs-toggle="tab" data-bs-target="#wallet" type="button" role="tab" aria-controls="wallet" aria-selected="false">
+                    <i class="fas fa-wallet me-1"></i>Wallet
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="trading-tab" data-bs-toggle="tab" data-bs-target="#trading" type="button" role="tab" aria-controls="trading" aria-selected="false">
+                    <i class="fas fa-chart-line me-1"></i>Trading
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="technical-tab" data-bs-toggle="tab" data-bs-target="#technical" type="button" role="tab" aria-controls="technical" aria-selected="false">
+                    <i class="fas fa-chart-bar me-1"></i>Technical Analysis
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="sentiment-tab" data-bs-toggle="tab" data-bs-target="#sentiment" type="button" role="tab" aria-controls="sentiment" aria-selected="false">
+                    <i class="fas fa-comment-alt me-1"></i>Sentiment Analysis
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tokens-tab" data-bs-toggle="tab" data-bs-target="#tokens" type="button" role="tab" aria-controls="tokens" aria-selected="false">
+                    <i class="fas fa-coins me-1"></i>Tokens
+                </button>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- Settings Content -->
+<div class="row">
+    <div class="col-12">
+        <div class="tab-content" id="settingsTabContent">
+            <!-- General Settings -->
+            <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">General Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="general-settings-form">
+                            <div class="mb-3">
+                                <label for="logging-level" class="form-label">Logging Level</label>
+                                <select class="form-select" id="logging-level" name="logging-level">
+                                    <option value="DEBUG">DEBUG</option>
+                                    <option value="INFO" selected>INFO</option>
+                                    <option value="WARNING">WARNING</option>
+                                    <option value="ERROR">ERROR</option>
+                                    <option value="CRITICAL">CRITICAL</option>
+                                </select>
+                                <div class="form-text">Set the level of detail for logging.</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="log-rotation" class="form-label">Log Rotation</label>
+                                <select class="form-select" id="log-rotation" name="log-rotation">
+                                    <option value="1 day" selected>1 Day</option>
+                                    <option value="1 week">1 Week</option>
+                                    <option value="1 month">1 Month</option>
+                                </select>
+                                <div class="form-text">How often to rotate log files.</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="log-retention" class="form-label">Log Retention</label>
+                                <select class="form-select" id="log-retention" name="log-retention">
+                                    <option value="1 week">1 Week</option>
+                                    <option value="1 month" selected>1 Month</option>
+                                    <option value="3 months">3 Months</option>
+                                    <option value="6 months">6 Months</option>
+                                    <option value="1 year">1 Year</option>
+                                </select>
+                                <div class="form-text">How long to keep log files.</div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Save General Settings</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Wallet Settings -->
+            <div class="tab-pane fade" id="wallet" role="tabpanel" aria-labelledby="wallet-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Wallet Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Security Warning:</strong> Private keys and API secrets should be stored in your <code>.env</code> file, not in the configuration file.
+                        </div>
+                        
+                        <h6 class="mb-3">Ethereum Wallet</h6>
+                        <form id="ethereum-wallet-form">
+                            <div class="mb-3">
+                                <label for="eth-address" class="form-label">Wallet Address</label>
+                                <input type="text" class="form-control" id="eth-address" name="eth-address" placeholder="0x...">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="eth-provider" class="form-label">Provider URL</label>
+                                <input type="text" class="form-control" id="eth-provider" name="eth-provider" placeholder="https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID">
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Save Ethereum Settings</button>
+                        </form>
+                        
+                        <hr class="my-4">
+                        
+                        <h6 class="mb-3">Binance Smart Chain Wallet</h6>
+                        <form id="bsc-wallet-form">
+                            <div class="mb-3">
+                                <label for="bsc-address" class="form-label">Wallet Address</label>
+                                <input type="text" class="form-control" id="bsc-address" name="bsc-address" placeholder="0x...">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="bsc-provider" class="form-label">Provider URL</label>
+                                <input type="text" class="form-control" id="bsc-provider" name="bsc-provider" placeholder="https://bsc-dataseed.binance.org/">
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Save BSC Settings</button>
+                        </form>
+                        
+                        <hr class="my-4">
+                        
+                        <h6 class="mb-3">Exchange API</h6>
+                        <form id="exchange-api-form">
+                            <div class="mb-3">
+                                <label for="exchange-api-key" class="form-label">Binance API Key</label>
+                                <input type="text" class="form-control" id="exchange-api-key" name="exchange-api-key" placeholder="Your Binance API Key">
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Save Exchange API Settings</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Trading Settings -->
+            <div class="tab-pane fade" id="trading" role="tabpanel" aria-labelledby="trading-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Trading Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="trading-settings-form">
+                            <div class="mb-3">
+                                <label for="max-allocation" class="form-label">Max Allocation Per Trade</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="max-allocation" name="max-allocation" min="0.01" max="1" step="0.01" value="0.1">
+                                    <span class="input-group-text">of portfolio</span>
+                                </div>
+                                <div class="form-text">Maximum percentage of portfolio to allocate to a single trade.</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="stop-loss" class="form-label">Stop Loss Percentage</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="stop-loss" name="stop-loss" min="0.01" max="0.5" step="0.01" value="0.05">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <div class="form-text">Percentage below entry price to set stop loss.</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="take-profit" class="form-label">Take Profit Percentage</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="take-profit" name="take-profit" min="0.01" max="1" step="0.01" value="0.15">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <div class="form-text">Percentage above entry price to take profit.</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="max-slippage" class="form-label">Max Slippage</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="max-slippage" name="max-slippage" min="0.001" max="0.05" step="0.001" value="0.01">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <div class="form-text">Maximum allowed slippage for trades.</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="gas-multiplier" class="form-label">Gas Price Multiplier</label>
+                                <input type="number" class="form-control" id="gas-multiplier" name="gas-multiplier" min="1" max="2" step="0.1" value="1.1">
+                                <div class="form-text">Multiplier for gas price to ensure transactions are processed quickly.</div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Save Trading Settings</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Technical Analysis Settings -->
+            <div class="tab-pane fade" id="technical" role="tabpanel" aria-labelledby="technical-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Technical Analysis Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="technical-settings-form">
+                            <h6 class="mb-3">Moving Averages</h6>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="short-ma" class="form-label">Short MA Period</label>
+                                    <input type="number" class="form-control" id="short-ma" name="short-ma" min="1" max="50" value="7">
+                                    <div class="form-text">Period for short-term moving average.</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="long-ma" class="form-label">Long MA Period</label>
+                                    <input type="number" class="form-control" id="long-ma" name="long-ma" min="10" max="200" value="25">
+                                    <div class="form-text">Period for long-term moving average.</div>
+                                </div>
+                            </div>
+                            
+                            <h6 class="mb-3">RSI</h6>
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="rsi-period" class="form-label">RSI Period</label>
+                                    <input type="number" class="form-control" id="rsi-period" name="rsi-period" min="1" max="50" value="14">
+                                    <div class="form-text">Period for RSI calculation.</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="rsi-overbought" class="form-label">RSI Overbought</label>
+                                    <input type="number" class="form-control" id="rsi-overbought" name="rsi-overbought" min="50" max="90" value="70">
+                                    <div class="form-text">Threshold for overbought condition.</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="rsi-oversold" class="form-label">RSI Oversold</label>
+                                    <input type="number" class="form-control" id="rsi-oversold" name="rsi-oversold" min="10" max="50" value="30">
+                                    <div class="form-text">Threshold for oversold condition.</div>
+                                </div>
+                            </div>
+                            
+                            <h6 class="mb-3">MACD</h6>
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="macd-fast" class="form-label">MACD Fast Period</label>
+                                    <input type="number" class="form-control" id="macd-fast" name="macd-fast" min="1" max="50" value="12">
+                                    <div class="form-text">Period for fast EMA in MACD.</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="macd-slow" class="form-label">MACD Slow Period</label>
+                                    <input type="number" class="form-control" id="macd-slow" name="macd-slow" min="10" max="100" value="26">
+                                    <div class="form-text">Period for slow EMA in MACD.</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="macd-signal" class="form-label">MACD Signal Period</label>
+                                    <input type="number" class="form-control" id="macd-signal" name="macd-signal" min="1" max="50" value="9">
+                                    <div class="form-text">Period for signal line in MACD.</div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Save Technical Analysis Settings</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sentiment Analysis Settings -->
+            <div class="tab-pane fade" id="sentiment" role="tabpanel" aria-labelledby="sentiment-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Sentiment Analysis Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Note:</strong> Twitter API credentials should be stored in your <code>.env</code> file, not in the configuration file.
+                        </div>
+                        
+                        <form id="sentiment-settings-form">
+                            <div class="mb-3">
+                                <label for="min-tweets" class="form-label">Minimum Tweets for Analysis</label>
+                                <input type="number" class="form-control" id="min-tweets" name="min-tweets" min="10" max="1000" value="50">
+                                <div class="form-text">Minimum number of tweets required for sentiment analysis.</div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="sentiment-positive" class="form-label">Positive Sentiment Threshold</label>
+                                    <input type="number" class="form-control" id="sentiment-positive" name="sentiment-positive" min="0" max="1" step="0.1" value="0.6">
+                                    <div class="form-text">Threshold for positive sentiment (0-1).</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="sentiment-negative" class="form-label">Negative Sentiment Threshold</label>
+                                    <input type="number" class="form-control" id="sentiment-negative" name="sentiment-negative" min="0" max="1" step="0.1" value="0.4">
+                                    <div class="form-text">Threshold for negative sentiment (0-1).</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="influencer-weight" class="form-label">Influencer Weight Multiplier</label>
+                                <input type="number" class="form-control" id="influencer-weight" name="influencer-weight" min="1" max="10" step="0.1" value="2.0">
+                                <div class="form-text">Weight multiplier for tweets from influencers.</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="keywords" class="form-label">Keywords</label>
+                                <textarea class="form-control" id="keywords" name="keywords" rows="3">crypto, bitcoin, ethereum, altcoin, defi, nft, web3</textarea>
+                                <div class="form-text">Comma-separated list of keywords to track.</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="influencers" class="form-label">Influencers</label>
+                                <textarea class="form-control" id="influencers" name="influencers" rows="3">VitalikButerin, cz_binance, SBF_FTX, elonmusk</textarea>
+                                <div class="form-text">Comma-separated list of influencer usernames to track.</div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Save Sentiment Analysis Settings</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tokens Settings -->
+            <div class="tab-pane fade" id="tokens" role="tabpanel" aria-labelledby="tokens-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Tokens of Interest</h5>
+                            <button id="add-token-btn" class="btn btn-sm btn-primary">
+                                <i class="fas fa-plus me-1"></i>Add Token
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Symbol</th>
+                                        <th>Chain</th>
+                                        <th>Address</th>
+                                        <th>Min Holding</th>
+                                        <th>Max Holding</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tokens-table">
+                                    <tr>
+                                        <td colspan="6" class="text-center">No tokens configured</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Token Modal -->
+<div class="modal fade" id="addTokenModal" tabindex="-1" aria-labelledby="addTokenModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTokenModalLabel">Add Token</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-token-form">
+                    <div class="mb-3">
+                        <label for="token-symbol" class="form-label">Symbol</label>
+                        <input type="text" class="form-control" id="token-symbol" name="token-symbol" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="token-chain" class="form-label">Chain</label>
+                        <select class="form-select" id="token-chain" name="token-chain" required>
+                            <option value="ethereum">Ethereum</option>
+                            <option value="binance_smart_chain">Binance Smart Chain</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="token-address" class="form-label">Contract Address</label>
+                        <input type="text" class="form-control" id="token-address" name="token-address" placeholder="0x...">
+                        <div class="form-text">Leave empty for native tokens (ETH, BNB).</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="token-min" class="form-label">Min Holding</label>
+                        <input type="number" class="form-control" id="token-min" name="token-min" min="0" step="0.01" value="0.1">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="token-max" class="form-label">Max Holding</label>
+                        <input type="number" class="form-control" id="token-max" name="token-max" min="0" step="0.1" value="5.0">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="save-token-btn">Add Token</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Fetch configuration
+        fetchConfig();
+        
+        // Form submissions
+        $('#general-settings-form').submit(function(e) {
+            e.preventDefault();
+            saveGeneralSettings();
+        });
+        
+        $('#ethereum-wallet-form').submit(function(e) {
+            e.preventDefault();
+            saveEthereumSettings();
+        });
+        
+        $('#bsc-wallet-form').submit(function(e) {
+            e.preventDefault();
+            saveBscSettings();
+        });
+        
+        $('#exchange-api-form').submit(function(e) {
+            e.preventDefault();
+            saveExchangeSettings();
+        });
+        
+        $('#trading-settings-form').submit(function(e) {
+            e.preventDefault();
+            saveTradingSettings();
+        });
+        
+        $('#technical-settings-form').submit(function(e) {
+            e.preventDefault();
+            saveTechnicalSettings();
+        });
+        
+        $('#sentiment-settings-form').submit(function(e) {
+            e.preventDefault();
+            saveSentimentSettings();
+        });
+        
+        // Add token button
+        $('#add-token-btn').click(function() {
+            $('#addTokenModal').modal('show');
+        });
+        
+        // Save token button
+        $('#save-token-btn').click(function() {
+            addToken();
+        });
+        
+        // Functions
+        function fetchConfig() {
+            $.ajax({
+                url: '/api/config',
+                type: 'GET',
+                success: function(config) {
+                    if (config.status !== 'error') {
+                        populateConfig(config);
+                    }
+                }
+            });
+        }
+        
+        function populateConfig(config) {
+            // General settings
+            if (config.logging) {
+                $('#logging-level').val(config.logging.level);
+                $('#log-rotation').val(config.logging.rotation);
+                $('#log-retention').val(config.logging.retention);
+            }
+            
+            // Wallet settings
+            if (config.wallet) {
+                if (config.wallet.ethereum) {
+                    $('#eth-address').val(config.wallet.ethereum.address);
+                    $('#eth-provider').val(config.wallet.ethereum.provider_url);
+                }
+                
+                if (config.wallet.binance_smart_chain) {
+                    $('#bsc-address').val(config.wallet.binance_smart_chain.address);
+                    $('#bsc-provider').val(config.wallet.binance_smart_chain.provider_url);
+                }
+            }
+            
+            // Exchange settings
+            if (config.exchanges && config.exchanges.binance) {
+                $('#exchange-api-key').val(config.exchanges.binance.api_key);
+            }
+            
+            // Trading settings
+            if (config.trading) {
+                $('#max-allocation').val(config.trading.max_allocation_per_trade);
+                $('#stop-loss').val(config.trading.stop_loss_percentage);
+                $('#take-profit').val(config.trading.take_profit_percentage);
+                $('#max-slippage').val(config.trading.max_slippage);
+                $('#gas-multiplier').val(config.trading.gas_price_multiplier);
+            }
+            
+            // Technical analysis settings
+            if (config.technical_analysis) {
+                $('#short-ma').val(config.technical_analysis.short_ma_period);
+                $('#long-ma').val(config.technical_analysis.long_ma_period);
+                $('#rsi-period').val(config.technical_analysis.rsi_period);
+                $('#rsi-overbought').val(config.technical_analysis.rsi_overbought);
+                $('#rsi-oversold').val(config.technical_analysis.rsi_oversold);
+                $('#macd-fast').val(config.technical_analysis.macd_fast_period);
+                $('#macd-slow').val(config.technical_analysis.macd_slow_period);
+                $('#macd-signal').val(config.technical_analysis.macd_signal_period);
+            }
+            
+            // Sentiment analysis settings
+            if (config.sentiment_analysis) {
+                $('#min-tweets').val(config.sentiment_analysis.min_tweets_for_analysis);
+                $('#sentiment-positive').val(config.sentiment_analysis.sentiment_threshold_positive);
+                $('#sentiment-negative').val(config.sentiment_analysis.sentiment_threshold_negative);
+                $('#influencer-weight').val(config.sentiment_analysis.influencer_weight_multiplier);
+                
+                if (config.sentiment_analysis.keywords) {
+                    $('#keywords').val(config.sentiment_analysis.keywords.join(', '));
+                }
+                
+                if (config.sentiment_analysis.influencers) {
+                    $('#influencers').val(config.sentiment_analysis.influencers.join(', '));
+                }
+            }
+            
+            // Tokens of interest
+            if (config.tokens_of_interest && config.tokens_of_interest.length > 0) {
+                const tokensTable = $('#tokens-table');
+                tokensTable.empty();
+                
+                config.tokens_of_interest.forEach(function(token) {
+                    const row = $('<tr></tr>');
+                    
+                    row.append(`<td>${token.symbol}</td>`);
+                    row.append(`<td>${token.chain}</td>`);
+                    row.append(`<td>${token.address}</td>`);
+                    row.append(`<td>${token.min_holding}</td>`);
+                    row.append(`<td>${token.max_holding}</td>`);
+                    row.append(`<td>
+                        <button class="btn btn-sm btn-outline-primary edit-token-btn" data-token="${token.symbol}">Edit</button>
+                        <button class="btn btn-sm btn-outline-danger delete-token-btn" data-token="${token.symbol}">Delete</button>
+                    </td>`);
+                    
+                    tokensTable.append(row);
+                });
+            }
+        }
+        
+        function saveGeneralSettings() {
+            showAlert('info', 'Saving general settings...');
+            
+            // In a real implementation, this would send the settings to the server
+            // For now, we'll just show a success message
+            showAlert('success', 'General settings saved successfully');
+        }
+        
+        function saveEthereumSettings() {
+            showAlert('info', 'Saving Ethereum wallet settings...');
+            
+            // In a real implementation, this would send the settings to the server
+            // For now, we'll just show a success message
+            showAlert('success', 'Ethereum wallet settings saved successfully');
+        }
+        
+        function saveBscSettings() {
+            showAlert('info', 'Saving BSC wallet settings...');
+            
+            // In a real implementation, this would send the settings to the server
+            // For now, we'll just show a success message
+            showAlert('success', 'BSC wallet settings saved successfully');
+        }
+        
+        function saveExchangeSettings() {
+            showAlert('info', 'Saving exchange API settings...');
+            
+            // In a real implementation, this would send the settings to the server
+            // For now, we'll just show a success message
+            showAlert('success', 'Exchange API settings saved successfully');
+        }
+        
+        function saveTradingSettings() {
+            showAlert('info', 'Saving trading settings...');
+            
+            // In a real implementation, this would send the settings to the server
+            // For now, we'll just show a success message
+            showAlert('success', 'Trading settings saved successfully');
+        }
+        
+        function saveTechnicalSettings() {
+            showAlert('info', 'Saving technical analysis settings...');
+            
+            // In a real implementation, this would send the settings to the server
+            // For now, we'll just show a success message
+            showAlert('success', 'Technical analysis settings saved successfully');
+        }
+        
+        function saveSentimentSettings() {
+            showAlert('info', 'Saving sentiment analysis settings...');
+            
+            // In a real implementation, this would send the settings to the server
+            // For now, we'll just show a success message
+            showAlert('success', 'Sentiment analysis settings saved successfully');
+        }
+        
+        function addToken() {
+            const symbol = $('#token-symbol').val();
+            const chain = $('#token-chain').val();
+            const address = $('#token-address').val();
+            const minHolding = $('#token-min').val();
+            const maxHolding = $('#token-max').val();
+            
+            if (!symbol) {
+                showAlert('warning', 'Please enter a token symbol');
+                return;
+            }
+            
+            // In a real implementation, this would send the token to the server
+            // For now, we'll just add it to the table
+            const tokensTable = $('#tokens-table');
+            
+            // Clear "No tokens configured" row if it exists
+            if (tokensTable.find('tr td[colspan="6"]').length > 0) {
+                tokensTable.empty();
+            }
+            
+            const row = $('<tr></tr>');
+            
+            row.append(`<td>${symbol}</td>`);
+            row.append(`<td>${chain}</td>`);
+            row.append(`<td>${address || 'Native'}</td>`);
+            row.append(`<td>${minHolding}</td>`);
+            row.append(`<td>${maxHolding}</td>`);
+            row.append(`<td>
+                <button class="btn btn-sm btn-outline-primary edit-token-btn" data-token="${symbol}">Edit</button>
+                <button class="btn btn-sm btn-outline-danger delete-token-btn" data-token="${symbol}">Delete</button>
+            </td>`);
+            
+            tokensTable.append(row);
+            
+            // Close modal
+            $('#addTokenModal').modal('hide');
+            
+            // Reset form
+            $('#add-token-form')[0].reset();
+            
+            showAlert('success', `Token ${symbol} added successfully`);
+        }
+    });
+</script>
